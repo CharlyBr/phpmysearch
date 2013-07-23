@@ -13,3 +13,7 @@ Search any table that contain the string 'user' in their name
     search for "user"
     searching in db tifomatic
         matched in table : users
+
+* search in all databases
+
+    $ php phpmysearch.php -s user
