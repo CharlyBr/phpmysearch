@@ -1,6 +1,35 @@
 <?php
 require 'config.php';
 
+/**
+ * search pattern in table fields
+ */
+function search_table($db_name, $table_name, $pattern)
+{
+    global $link;
+ 
+    $result = mysql_query("SHOW COLUMNS FROM $table_name");
+    if (!$result) {
+        echo 'Could not run query: ' . mysql_error();
+        return false;
+    }
+    if (mysql_num_rows($result) > 0) {
+
+        $matched = array();
+        while ($row = mysql_fetch_assoc($result)) {
+            if (strstr($row['Field'], $pattern)) $matched[] = $row['Field'];
+        }
+        if (count($matched)) {
+            echo "searching in db $db_name, table $table_name\n";
+            foreach($matched as $t) echo "\tmatched in field : ",$t,"\n";
+            echo "\n";
+        }
+    }
+}
+
+/**
+ * search pattern in table names of a db
+ */
 function search_db($dbs=array(), $pattern)
 {
     foreach($dbs as $db_name) {
@@ -10,6 +39,8 @@ function search_db($dbs=array(), $pattern)
             if (strstr($row[0], $pattern)) {
                 $matched[] = $row[0];
             }
+            // search in table fields
+            search_table($db_name, $row[0], $pattern);
         }
         mysql_free_result($result);
 
@@ -40,7 +71,7 @@ $shortopts .= "h";
 $options = getopt($shortopts);
 if (empty($options)) usage();
 if (isset($options['h'])) usage();
-if (! isset($options['s'])) usage();
+if (!isset($options['s'])) usage();
 
 
 /*** MAIN ***/
@@ -51,7 +82,7 @@ if (!$link) {
     exit;
 }
 
-echo "search for \"".$options['s'],"\"\n";
+echo 'search for "'.$options['s'],'"',"\n";
 
 $dbs = array();
 if (isset($options['d'])) {
